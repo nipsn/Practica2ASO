@@ -15,17 +15,17 @@ MPI_Comm_size(MPI_COMM_WORLD,&size);
 MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
 
-if(argc < 2){
+/*if(argc < 2){
   printf("Error en los argumentos\n");
   return -1;
-}
+}*/
 printf("Coche %d creado", rank);
 
 
 MPI_Barrier(MPI_COMM_WORLD);
 MPI_Status estado;
-int tipo=1;
-int plaza,tiempo_espera,datosRecibidos; 
+int tipo=V_COCHE;
+int plaza,tiempo_espera; 
 
 for(;;){
 //obtiene un valor aleatorio para intentar entrar en el parking
@@ -33,20 +33,19 @@ srand(time(NULL));
 tiempo_espera=rand() % 5;
 sleep(tiempo_espera);
 //Peticion para entrar en el parking
-printf("EL COCHE %d QUIERE APARCAR EN EL PARKING\n",rank);
-//MPI_Send();
+printf("EL COCHE %d QUIERE ENTRAR en el parking\n",rank);
+MPI_Send(&tipo,1,MPI_INT, N_PARKING,S_ENTRADA,MPI_COMM_WORLD);
 
-//Espera hasta que el parking tenga una plaza libre
-//MPI_Recv();
-//MPI_Get_count();
+//Espera recibir señal hasta que el parking tenga una plaza libre
+MPI_Recv(&plaza,1,MPI_INT,N_PARKING,S_HUECO,MPI_COMM_WORLD,&estado);
 
 //pasado un tiempo aleatorio sale del parking
 srand(time(NULL));
 tiempo_espera=rand() % 5;
 sleep(tiempo_espera);
 
-//MPI_send();
-//MPI_Send();
+
+MPI_Send(&plaza,1,MPI_INT,N_PARKING,S_SALIDA,MPI_COMM_WORLD); 
 
 }
 MPI_Finalize();
