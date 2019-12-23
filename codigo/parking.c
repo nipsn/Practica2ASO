@@ -72,25 +72,25 @@ int buscoHuecoYAparco(int tipoV, int idV){
     if(plazasLibres < tipoV) return -1;
     int i, j;
     if(tipoV == V_COCHE){
-        for(i = 0;i < plazas;i++){
+        for(i = 0;i < plazasTotales;i++){
             if(parking[i] == VACIA){
                 parking[i] = idV;
-                printf("ENTRA COCHE %d en la plaza %d de la planta %d.\n", idV, i, j);
                 plazasLibres--;
+                printf("ENTRA COCHE %d en la plaza %d de la planta %d.\n", idV, i, j);
                 return i;
             }
             
         }
         return -1;
     } else if(tipoV == V_CAMION){
-        for(i = 0;i < plazas;i++){
-                if(parking[i] == VACIA && parking[i+1] == VACIA && !((i + 1) % plantas)){
-                    parking[i] = idV;
-                    parking[i+1] = idV;
-                    printf("ENTRA CAMION %d en la plaza %d de la planta %d.\n", idV, i, j);
-                    plazasLibres--;
-                    return i;
-                }
+        for(i = 0;i < plazasTotales;i++){
+            if(parking[i] == VACIA && parking[i+1] == VACIA && !((i + 1) % plantas)){
+                parking[i] = idV;
+                parking[i+1] = idV;
+                plazasLibres--;
+                printf("ENTRA CAMION %d en la plaza %d de la planta %d.\n", idV, i, j);
+                return i;
+            }
         }
         return -1;
     } else {
