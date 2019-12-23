@@ -37,21 +37,26 @@ int main(int argc, char **argv){
 
     for(;;){
         MPI_Recv(&dato, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &estado);
-        //dato contiene el tipo de vehiculo si se trata de una entrada o la plaza si se trata de la salida
+        // dato contiene:
+        // El tipo de vehiculo si se trata de una entrada al parking o 
+        // La plaza si se trata de la salida del mismo
+        fuente = estado.MPI_SOURCE;
         if(estado.MPI_TAG == S_ENTRADA){
-            fuente = estado.MPI_SOURCE;
-            int tengoSitio = buscoHuecoYAparco(dato, fuente);
-            while(tengoSitio == -1){
+            hueco = buscoHuecoYAparco(dato, fuente);
+            while(hueco == -1){
                 if(dato == V_COCHE)  printf("ESPERA COCHE %d hasta que haya plaza.\n", fuente);
                 if(dato == V_CAMION) printf("ESPERA CAMION %d hasta que haya plaza.\n", fuente);
+
                 MPI_Recv(&hueco, 1, MPI_INT, MPI_ANY_SOURCE, S_SALIDA, MPI_COMM_WORLD, &estado);
                 liberarPlaza(hueco);
-                tengoSitio = buscoHuecoYAparco(dato, fuente);
+                hueco = buscoHuecoYAparco(dato, fuente);
             }
-            MPI_Send(&tengoSitio, 1, MPI_INT, fuente, S_HUECO, MPI_COMM_WORLD);
+            MPI_Send(&hueco, 1, MPI_INT, fuente, S_HUECO, MPI_COMM_WORLD);
             imprimirParking();
         } else if(estado.MPI_TAG == S_SALIDA){
+            printf("SALIDA del vehiculo %d.\n", fuente);
             liberarPlaza(dato);
+            imprimirParking();
         } else printf("Tag %d no valida.\n");
     }
 
@@ -91,7 +96,7 @@ int buscoHuecoYAparco(int tipoV, int idV){
         return -1;
     } else {
         printf("Error. No es un vehículo válido.\n");
-        return -1;  
+        return -2;  
     }
 }
 
@@ -103,5 +108,4 @@ void imprimirParking(){
         }
         printf("\n");
     }
-
 }
