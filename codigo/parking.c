@@ -27,7 +27,7 @@ int main(int argc, char **argv){
 
 
     for(int i = 0;i < plazasTotales;i++)
-        parking[i] = -1;
+        parking[i] = VACIA;
 
 
     printf("Parking de %d plazas y %d plantas creado.\n", plazas, plantas);
@@ -39,22 +39,18 @@ int main(int argc, char **argv){
         MPI_Recv(&dato, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &estado);
         //dato contiene el tipo de vehiculo si se trata de una entrada o la plaza si se trata de la salida
         if(estado.MPI_TAG == S_ENTRADA){
-            //Alguien quiere entrar    
             fuente = estado.MPI_SOURCE;
             int tengoSitio = buscoHuecoYAparco(dato, fuente);
             while(tengoSitio == -1){
                 if(dato == V_COCHE)  printf("ESPERA COCHE %d hasta que haya plaza.\n", fuente);
                 if(dato == V_CAMION) printf("ESPERA CAMION %d hasta que haya plaza.\n", fuente);
-                //mpi_recv
-                //si recibe que alguien se va, libero y busco hueco otra vez
-                //recibo en hueco
+                MPI_Recv(&hueco, 1, MPI_INT, MPI_ANY_SOURCE, S_SALIDA, MPI_COMM_WORLD, &estado);
                 liberarPlaza(hueco);
                 tengoSitio = buscoHuecoYAparco(dato, fuente);
             }
-            //mpi_send plaza al coche/camion
+            MPI_Send(&tengoSitio, 1, MPI_INT, fuente, S_HUECO, MPI_COMM_WORLD);
             imprimirParking();
         } else if(estado.MPI_TAG == S_SALIDA){
-            //Sale alguien
             liberarPlaza(dato);
         } else printf("Tag %d no valida.\n");
     }
@@ -64,8 +60,8 @@ int main(int argc, char **argv){
 }
 
 void liberarPlaza(int plaza){
-    if(parking[plaza] == parking[plaza+1]) parking[plaza + 1] = -1;
-    parking[plaza] = -1;
+    if(parking[plaza] == parking[plaza+1]) parking[plaza + 1] = VACIA;
+    parking[plaza] = VACIA;
 }
 
 int buscoHuecoYAparco(int tipoV, int idV){
