@@ -1,3 +1,7 @@
+/*
+TO-DO: Todo lo relacionado con la compilacion y ejecucion.
+hostfile, makefile, pruebas y depuracion.
+*/
 #include "/home/oscar/.openmpi/include/mpi.h"
 //#include <mpi.h>
 #include <stdio.h>
