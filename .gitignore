@@ -1,3 +1,5 @@
 *.pdf
 codigo/parking
+codigo/coche
+codigo/camion
 .vscode/settings.json
