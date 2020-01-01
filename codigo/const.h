@@ -6,7 +6,7 @@
 #define S_HUECO 1
 #define S_SALIDA 2
 
-// Tipos de vehiculos
+
 #define V_COCHE 1
 #define V_CAMION 2
 
