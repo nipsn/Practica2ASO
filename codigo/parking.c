@@ -5,6 +5,7 @@ hostfile, makefile, pruebas y depuracion.
 #include "/home/oscar/.openmpi/include/mpi.h"
 //#include <mpi.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "const.h"
 
 unsigned int plazas, plantas, plazasTotales, plazasLibres;
@@ -27,8 +28,8 @@ int main(int argc, char **argv){
     }
     plazas = atoi(argv[1]);
     
-    plazasTotales, plazasLibres = plazas * plantas;
-
+    plazasTotales = plazas * plantas;
+    plazasLibres = plazas * plantas;
 
     for(int i = 0;i < plazasTotales;i++)
         parking[i] = VACIA;
@@ -61,7 +62,7 @@ int main(int argc, char **argv){
             printf("SALIDA del vehiculo %d.\n", fuente);
             liberarPlaza(dato);
             imprimirParking();
-        } else printf("Tag %d no valida.\n");
+        } else printf("Tag no valida.\n");
     }
 
     MPI_Finalize();
@@ -75,13 +76,13 @@ void liberarPlaza(int plaza){
 
 int buscoHuecoYAparco(int tipoV, int idV){
     if(plazasLibres < tipoV) return -1;
-    int i, j;
+    int i;
     if(tipoV == V_COCHE){
         for(i = 0;i < plazasTotales;i++){
             if(parking[i] == VACIA){
                 parking[i] = idV;
                 plazasLibres--;
-                printf("ENTRA COCHE %d en la plaza %d de la planta %d.\n", idV, i, j);
+                printf("ENTRA COCHE %d en la plaza %d.\n", idV, i);
                 return i;
             }
             
@@ -93,7 +94,7 @@ int buscoHuecoYAparco(int tipoV, int idV){
                 parking[i] = idV;
                 parking[i+1] = idV;
                 plazasLibres--;
-                printf("ENTRA CAMION %d en la plaza %d de la planta %d.\n", idV, i, j);
+                printf("ENTRA CAMION %d en la plaza %d.\n", idV, i);
                 return i;
             }
         }
@@ -105,11 +106,10 @@ int buscoHuecoYAparco(int tipoV, int idV){
 }
 
 void imprimirParking(){
-    int i, j;
-    for(i = 0;i < plazas;i++){
-        for(j = 0;j < plantas;j++){
-            printf("[%d]");
-        }
-        printf("\n");
+    int i;
+    for(i = 0;i < plazas * plantas;i++){
+        printf("[%d]", parking[i]);
+        if(i % plazas == 0)
+            printf("\n");
     }
 }
