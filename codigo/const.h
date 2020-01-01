@@ -15,8 +15,8 @@
 // Nodos
 #define N_PARKING 0
 
-void liberarPlaza(int plaza);
-int buscoHuecoYAparco(int tipoV, int idV);
-void imprimirParking();
+void liberarPlaza(int plaza, int *parking);
+int buscoHuecoYAparco(int tipoV, int idV, int *parking);
+void imprimirParking(int *parking);
 
 #endif

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-//#include <mpi.h>
-#include "/home/oscar/.openmpi/include/mpi.h"
+#include <mpi.h>
+//#include "/home/oscar/.openmpi/include/mpi.h"
 #include "const.h"
 #include <time.h>
 
@@ -14,7 +14,8 @@ int main(int argc, char **argv){
     MPI_Comm_size(MPI_COMM_WORLD,&size);
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-    printf("Camion %d creado", rank);
+    printf("Camion %d creado\n", rank);
+    fflush(0);
 
 
     srand(time(NULL));
@@ -22,13 +23,13 @@ int main(int argc, char **argv){
     MPI_Status estado;
     int tipo=V_CAMION;
     int plaza,tiempo_espera; 
-
     for(;;){
         //obtiene un valor aleatorio para intentar entrar en el parking
         tiempo_espera=rand() % 5;
         sleep(tiempo_espera);
         //Peticion para entrar en el parking
         printf("ENTRADA CAMION %d al parking\n",rank);
+        fflush(0);
         MPI_Send(&tipo,1,MPI_INT, N_PARKING,S_ENTRADA,MPI_COMM_WORLD);
 
         //Espera recibir señal hasta que el parking tenga una plaza libre
