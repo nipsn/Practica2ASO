@@ -1,3 +1,7 @@
+/*
+TO-DO: Todo lo relacionado con la compilacion y ejecucion.
+hostfile, makefile, pruebas y depuracion.
+*/
 #include "/home/oscar/.openmpi/include/mpi.h"
 //#include <mpi.h>
 #include <stdio.h>
@@ -27,7 +31,7 @@ int main(int argc, char **argv){
 
 
     for(int i = 0;i < plazasTotales;i++)
-        parking[i] = -1;
+        parking[i] = VACIA;
 
 
     printf("Parking de %d plazas y %d plantas creado.\n", plazas, plantas);
@@ -37,25 +41,26 @@ int main(int argc, char **argv){
 
     for(;;){
         MPI_Recv(&dato, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &estado);
-        //dato contiene el tipo de vehiculo si se trata de una entrada o la plaza si se trata de la salida
+        // dato contiene:
+        // El tipo de vehiculo si se trata de una entrada al parking o 
+        // La plaza si se trata de la salida del mismo
+        fuente = estado.MPI_SOURCE;
         if(estado.MPI_TAG == S_ENTRADA){
-            //Alguien quiere entrar    
-            fuente = estado.MPI_SOURCE;
-            int tengoSitio = buscoHuecoYAparco(dato, fuente);
-            while(tengoSitio == -1){
+            hueco = buscoHuecoYAparco(dato, fuente);
+            while(hueco == -1){
                 if(dato == V_COCHE)  printf("ESPERA COCHE %d hasta que haya plaza.\n", fuente);
                 if(dato == V_CAMION) printf("ESPERA CAMION %d hasta que haya plaza.\n", fuente);
-                //mpi_recv
-                //si recibe que alguien se va, libero y busco hueco otra vez
-                //recibo en hueco
+
+                MPI_Recv(&hueco, 1, MPI_INT, MPI_ANY_SOURCE, S_SALIDA, MPI_COMM_WORLD, &estado);
                 liberarPlaza(hueco);
-                tengoSitio = buscoHuecoYAparco(dato, fuente);
+                hueco = buscoHuecoYAparco(dato, fuente);
             }
-            //mpi_send plaza al coche/camion
+            MPI_Send(&hueco, 1, MPI_INT, fuente, S_HUECO, MPI_COMM_WORLD);
             imprimirParking();
         } else if(estado.MPI_TAG == S_SALIDA){
-            //Sale alguien
+            printf("SALIDA del vehiculo %d.\n", fuente);
             liberarPlaza(dato);
+            imprimirParking();
         } else printf("Tag %d no valida.\n");
     }
 
@@ -64,38 +69,38 @@ int main(int argc, char **argv){
 }
 
 void liberarPlaza(int plaza){
-    if(parking[plaza] == parking[plaza+1]) parking[plaza + 1] = -1;
-    parking[plaza] = -1;
+    if(parking[plaza] == parking[plaza+1]) parking[plaza + 1] = VACIA;
+    parking[plaza] = VACIA;
 }
 
 int buscoHuecoYAparco(int tipoV, int idV){
     if(plazasLibres < tipoV) return -1;
     int i, j;
     if(tipoV == V_COCHE){
-        for(i = 0;i < plazas;i++){
+        for(i = 0;i < plazasTotales;i++){
             if(parking[i] == VACIA){
                 parking[i] = idV;
-                printf("ENTRA COCHE %d en la plaza %d de la planta %d.\n", idV, i, j);
                 plazasLibres--;
+                printf("ENTRA COCHE %d en la plaza %d de la planta %d.\n", idV, i, j);
                 return i;
             }
             
         }
         return -1;
     } else if(tipoV == V_CAMION){
-        for(i = 0;i < plazas;i++){
-                if(parking[i] == VACIA && parking[i+1] == VACIA && !((i + 1) % plantas)){
-                    parking[i] = idV;
-                    parking[i+1] = idV;
-                    printf("ENTRA CAMION %d en la plaza %d de la planta %d.\n", idV, i, j);
-                    plazasLibres--;
-                    return i;
-                }
+        for(i = 0;i < plazasTotales;i++){
+            if(parking[i] == VACIA && parking[i+1] == VACIA && !((i + 1) % plantas)){
+                parking[i] = idV;
+                parking[i+1] = idV;
+                plazasLibres--;
+                printf("ENTRA CAMION %d en la plaza %d de la planta %d.\n", idV, i, j);
+                return i;
+            }
         }
         return -1;
     } else {
         printf("Error. No es un vehículo válido.\n");
-        return -1;  
+        return -2;  
     }
 }
 
@@ -107,5 +112,4 @@ void imprimirParking(){
         }
         printf("\n");
     }
-
 }
