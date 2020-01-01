@@ -1,3 +1,3 @@
 parking slots=1
-coche slots 3
-camion slots 2
+coche slots=3
+camion slots=2
