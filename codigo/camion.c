@@ -29,12 +29,10 @@ int main(int argc, char **argv){
         sleep(tiempo_espera);
         //Peticion para entrar en el parking
         printf("ENTRADA CAMION %d al parking\n",rank);
-        fflush(0);
         MPI_Send(&tipo,1,MPI_INT, N_PARKING,S_ENTRADA,MPI_COMM_WORLD);
 
         //Espera recibir señal hasta que el parking tenga una plaza libre
         MPI_Recv(&plaza,1,MPI_INT,N_PARKING,S_HUECO,MPI_COMM_WORLD,&estado);
-
 
         //pasado un tiempo aleatorio sale del parking
         tiempo_espera=rand() % 5;

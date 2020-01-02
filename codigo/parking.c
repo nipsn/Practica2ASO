@@ -1,8 +1,3 @@
-/*
-TO-DO: Todo lo relacionado con la compilacion y ejecucion.
-hostfile, makefile, pruebas y depuracion.
-*/
-//#include "/home/oscar/.openmpi/include/mpi.h"
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,10 +35,12 @@ int main(int argc, char **argv){
     printf("Parking de %d plazas y %d plantas creado.\n", plazas, plantas);
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Status estado;
-    int fuente, dato, hueco;
-
+    int fuente, dato, hueco, numDatosRecibidos;
+    
     for(;;){
         MPI_Recv(&dato, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &estado);
+        MPI_Get_count( &estado, MPI_INT, &numDatosRecibidos );
+
         // dato contiene:
         // El tipo de vehiculo si se trata de una entrada al parking o 
         // La plaza si se trata de la salida del mismo
@@ -52,11 +49,7 @@ int main(int argc, char **argv){
             hueco = buscoHuecoYAparco(dato, fuente, parking);
             while(hueco == -1){
                 if(dato == V_COCHE)  printf("ESPERA COCHE %d hasta que haya plaza.\n", fuente);
-                fflush(0);
                 if(dato == V_CAMION) printf("ESPERA CAMION %d hasta que haya plaza.\n", fuente);
-                fflush(0);
-
-                imprimirParking(parking);
 
                 MPI_Recv(&hueco, 1, MPI_INT, MPI_ANY_SOURCE, S_SALIDA, MPI_COMM_WORLD, &estado);
                 liberarPlaza(hueco, parking);
@@ -66,9 +59,7 @@ int main(int argc, char **argv){
             imprimirParking(parking);
         } else if(estado.MPI_TAG == S_SALIDA){
             printf("SALIDA del vehiculo %d.\n", fuente);
-            fflush(0);
             liberarPlaza(dato, parking);
-            MPI_Send(&dato, 1, MPI_INT, fuente, S_HUECO, MPI_COMM_WORLD);
             imprimirParking(parking);
         } else printf("Tag no valida.\n");
     }
@@ -78,8 +69,12 @@ int main(int argc, char **argv){
 }
 
 void liberarPlaza(int plaza, int *parking){
-    if(parking[plaza] == parking[plaza+1]) parking[plaza + 1] = VACIA;
+    if(parking[plaza] == parking[plaza+1]) {
+        parking[plaza + 1] = VACIA;
+        plazasLibres++;
+    }
     parking[plaza] = VACIA;
+    plazasLibres++;
 }
 
 int buscoHuecoYAparco(int tipoV, int idV, int *parking){
@@ -91,7 +86,6 @@ int buscoHuecoYAparco(int tipoV, int idV, int *parking){
                 parking[i] = idV;
                 plazasLibres--;
                 printf("ENTRA COCHE %d en la plaza %d.\n", idV, i);
-                fflush(0);
                 return i;
             }
             
@@ -99,19 +93,17 @@ int buscoHuecoYAparco(int tipoV, int idV, int *parking){
         return -1;
     } else if(tipoV == V_CAMION){
         for(i = 0;i < plazasTotales;i++){
-            if(parking[i] == VACIA && parking[i+1] == VACIA && ((i + 1) % plazas)){
+            if(parking[i] == VACIA && parking[i+1] == VACIA && (i + 1) % plazas){
                 parking[i] = idV;
                 parking[i+1] = idV;
-                plazasLibres--;
+                plazasLibres -= 2;
                 printf("ENTRA CAMION %d en la plaza %d.\n", idV, i);
-                fflush(0);
                 return i;
             }
         }
         return -1;
     } else {
         printf("Error. No es un vehículo válido.\n");
-        fflush(0);
         return -2;  
     }
 }
@@ -124,5 +116,4 @@ void imprimirParking(int *parking){
             printf("\n");
     }
     printf("\n");
-    fflush(0);
 }
